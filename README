@@ -1,1 +1,15 @@
-This is a git repo for the daily show.  Hopefully this will provide more feature velocity and quicker fixes to the plugin when it goes down.
+# Description
+
+This plugin provides access to full episodes of The Daily Show, as well as extended guest interviews.
+
+# Installation
+
+# Credits
+
+This project was originally forked from https://github.com/VTWoods/xbmc-dailyshow.
+
+[BeautifulSoup](http://www.crummy.com/software/BeautifulSoup/) is used to scrape web content.
+
+# License
+
+This software is distributed under the MIT License.  See the included LICENSE file, or view the license at the [OSI](http://opensource.org/licenses/mit-license.php/).

@@ -1,6 +1,7 @@
 import urllib,urllib2,re,xbmcplugin,xbmcgui
 import os,datetime
 import demjson
+import BeautifulSoup
 
 DATELOOKUP = "http://www.thedailyshow.com/feeds/timeline/coordinates/"
 
@@ -80,8 +81,6 @@ def pageFragments(url):
 def ROOT():
     addDir('Full Episodes','full',5)
     addDir('Browse by Date','date',1)
-    addDir('News Team','newsteam',2)
-    addDir('Segments','segments',4)
     addDir('Guests','guests',3)
     xbmcplugin.endOfDirectory(pluginhandle)
 
@@ -140,43 +139,51 @@ def FULLEPISODES():
     xbmcplugin.endOfDirectory(pluginhandle)
 
 
-def NEWS_TEAM():
-    nurl= 'http://www.thedailyshow.com/news-team'
-    data = getURL(nurl)
-    people=re.compile('href="/news-team/(.+?)"').findall(data)
-    names = []
-    for name in people:
-        name = name.replace('-',' ').title()
-        if name not in names:
-            names.append(name)
-    for name in names:
-        link = name.replace(' ','+')
-        furl = 'http://www.thedailyshow.com/feeds/search?keywords=&tags='+link+'&sortOrder=desc&sortBy='+SORTORDER+'&page=1'
-        addDir(name,furl,7)
-    xbmcplugin.endOfDirectory(pluginhandle)
 
+
+class Guest(object):
+    def __init__(self,data):
+        self.soup = data
+
+    def day(self):        
+        raw_text = self.soup('a',{'class' : 'full-episode-url'})[0].getText()
+
+        raw_text = raw_text.replace('Full Episode Available','')
+        m = re.search(r'(.*) - .*', raw_text)
+
+        return m.group(1)
+
+    def name(self):
+        return self.soup('span', {'class' : 'title'})[0].getText().replace('Exclusive - ','')
+
+    def url(self):
+        return self.soup('a', {'class' : 'imageHolder'})[0]['href']
 
 def GUESTS():
-    gurl = "http://www.thedailyshow.com/guests"
-    data = getURL(gurl)
-    cats=re.compile('<option value="(.+?)">(.+?)</option>').findall(data)
-    for link,name in cats:
-        furl = 'http://www.thedailyshow.com/feeds/search?guestCategory='+link+'&sortOrder=desc&sortBy='+SORTORDER+'&page=1'
-        addDir(name,furl,7)
-    xbmcplugin.endOfDirectory(pluginhandle)
+    gurl = "http://www.thedailyshow.com/feeds/search?keywords=&tags=interviews&sortOrder=desc&sortBy=date&page=1"
+    data = getURL(gurl).replace('</pre>','</div>')
 
-def SEGMENTS():
-    segments=[('Even Stevphen','Even+Stevphen'),
-        ('This Week in God','This+Week+in+God'),
-        ("Mess O'Potamia",'Mess+O%27Potamia'),
-        ('Clusterf#@k to the Poor House','Clusterf%23%40k+to+the+Poor+House'),
-        ('Moment of Zen','Moment+of+Zen'),
-        ('Back in Black','Back+in+Black')
-    ]
-    for name, link in segments:
-        url = 'http://www.thedailyshow.com/feeds/search?keywords=&tags='+link+'&sortOrder=desc&sortBy='+SORTORDER+'&page=1'
-        addDir(name,url,7)
+    soup = BeautifulSoup.BeautifulSoup(data)
+
+    guest_items = soup('div', {'class' : 'entry'})
+    mode = 10
+    for item in guest_items:
+        g = Guest(item)
+        
+        liz=xbmcgui.ListItem(g.name(), iconImage=None, thumbnailImage=None)
+        liz.setInfo( type="Video", infoLabels={ "Title": g.name(),
+                                                "TVShowTitle":'The Daily Show'})
+        liz.setProperty('IsPlayable', 'true')
+        liz.setProperty('fanart_image',fanart)
+        
+        
+        u=sys.argv[0]+"?url="+g.url()+"&mode="+str(mode)+"&name="+g.name()
+        
+        xbmcplugin.addDirectoryItem(handle=pluginhandle,url=u, listitem=liz)
+
     xbmcplugin.endOfDirectory(pluginhandle)
+    
+
 
 
 ################################ Browse by Date
@@ -248,6 +255,10 @@ def LISTVIDEOS(url):
     for pb in playbackUrls:
         url = "http://www.thedailyshow.com/watch/"+pb
         marker = playbackUrls.index(pb)
+        
+        log( 'marker --> %s' % marker )
+        log('names --> %s' % names)
+        
         thumbnail = thumbnails[marker]
         fname = names[marker]
         description = descriptions[marker]
@@ -284,7 +295,10 @@ def LISTVIDEOS(url):
 
 def PLAYVIDEO(name,url):
     data = getURL(url)
-    uri = re.compile('"http://media.mtvnservices.com/(.+?)"/>').findall(data)[0]
+    uri = re.compile('"http://media.mtvnservices.com/(.+?)"/>').findall(data)[0].replace('fb/','').replace('.swf','')
+    
+    print 'uri --> %s' % uri
+    
     rtmp = GRAB_RTMP(uri)
     item = xbmcgui.ListItem(name, iconImage="DefaultVideo.png", thumbnailImage=thumbnail, path=rtmp)
     item.setInfo( type="Video", infoLabels={ "Title": name,
@@ -294,13 +308,16 @@ def PLAYVIDEO(name,url):
                                              "Episode":int(episode),
                                              "TVShowTitle":TVShowTitle})
     item.setProperty('fanart_image',fanart)
+    
+    print 'item --> %s' % item
+    
     xbmcplugin.setResolvedUrl(pluginhandle, True, item)
 
 ################################ Play Full Episode
 
 def PLAYFULLEPISODE(name,url):
     data = getURL(url)
-    uri = re.compile('http://media.mtvnservices.com/(mgid:cms:episode:thedailyshow.com:\d{6})').findall(data)[0]
+    uri = re.compile('http://media.mtvnservices.com/(mgid:cms:episode:thedailyshow.com:\d{6}|mgid:cms:video:thedailyshow.com:\d{6})').findall(data)[0]
     #url = 'http://media.mtvnservices.com/player/config.jhtml?uri='+uri+'&group=entertainment&type=network&site=thedailyshow.com'
     url = 'http://shadow.comedycentral.com/feeds/video_player/mrss/?uri='+uri
     data = getURL(url)
@@ -310,7 +327,13 @@ def PLAYFULLEPISODE(name,url):
         rtmp = GRAB_RTMP(uri)
         stacked_url += rtmp.replace(',',',,')+' , '
     stacked_url = stacked_url[:-3]
+    
+    print 'stacked_url --> %s' % stacked_url
+    
     item = xbmcgui.ListItem(name, iconImage="DefaultVideo.png", thumbnailImage=thumbnail, path=stacked_url)
+    
+    print 'item --> %s' % item
+    
     item.setInfo( type="Video", infoLabels={ "Title": name,
                                              "Plot":plot,
                                              "premiered":premiered,
@@ -318,8 +341,9 @@ def PLAYFULLEPISODE(name,url):
                                              "Episode":int(episode),
                                              "TVShowTitle":TVShowTitle})
     item.setProperty('fanart_image',fanart)
-    print stacked_url
+    
     xbmcplugin.setResolvedUrl(pluginhandle, True, item)
+    
 
 ################################ Grab rtmp        
 
@@ -332,6 +356,9 @@ def GRAB_RTMP(uri):
     heights = re.compile('height="(.+?)"').findall(data)
     bitrates = re.compile('bitrate="(.+?)"').findall(data)
     rtmps = re.compile('<src>rtmp(.+?)</src>').findall(data)
+    
+    print 'rtmps --> %s' % rtmps
+    
     mpixels = 0
     mbitrate = 0
     lbitrate = 0
@@ -348,6 +375,7 @@ def GRAB_RTMP(uri):
     elif xbmcplugin.getSetting(pluginhandle,"bitrate") == '5':
         lbitrate = 450
     for rtmp in rtmps:
+        print 'processing rtmp: %s' % rtmp
         marker = rtmps.index(rtmp)
         w = int(widths[marker])
         h = int(heights[marker])
@@ -370,6 +398,8 @@ def GRAB_RTMP(uri):
                 #port = ':1935'
                 #app = '/ondemand?ovpfv=2.1.4'
                 #furl = 'rtmp'+server+port+app+path+" playpath="+path+" swfurl="+swfurl+" swfvfy=true"
+
+    print 'furl --> %s' % furl
     return furl
 
 
@@ -443,12 +473,8 @@ elif mode==11:
     MONTHES(url)
 elif mode==12:
     DATES(url)
-elif mode==2:
-    NEWS_TEAM()
 elif mode==3:
     GUESTS()
-elif mode==4:
-    SEGMENTS()
 elif mode==5:
     FULLEPISODES()
 elif mode==7:
