@@ -80,7 +80,6 @@ def pageFragments(url):
 ################################ Root listing
 def ROOT():
     addDir('Full Episodes','full',5)
-    addDir('Browse by Date','date',1)
     addDir('Guests','guests',3)
     xbmcplugin.endOfDirectory(pluginhandle)
 
@@ -182,63 +181,6 @@ def GUESTS():
         xbmcplugin.addDirectoryItem(handle=pluginhandle,url=u, listitem=liz)
 
     xbmcplugin.endOfDirectory(pluginhandle)
-    
-
-
-
-################################ Browse by Date
-
-def YEARS():
-    now = datetime.datetime.now()
-    maxyear = int(now.year)+1
-    for year in range(1999,maxyear):
-        year = str(year)
-        ycode = str(int(year)- 1996)
-        addDir(year,ycode,11)
-    xbmcplugin.endOfDirectory(pluginhandle)
-
-def MONTHES(ycode):
-    MONTHES = ['January','February','March','April','May','June','July','August','September','October','November','December']
-    year = str(int(ycode) + 1996)
-    mcode = '11'
-    dcode = '31'
-    url = DATELOOKUP+ycode+','+mcode+','+dcode
-    items = demjson.decode(getURL(url))
-    mticks = items['ticks']['month']
-    for tick in mticks:
-        mcode = mticks.index(tick)
-        if tick['on'] == True:
-            pname = MONTHES[mcode]+' '+year
-            pcode = ycode+','+str(mcode)
-            addDir(pname,pcode,12)
-    xbmcplugin.endOfDirectory(pluginhandle)
-
-def DATES(ymcode):
-    dcode = '31'
-    url = DATELOOKUP+ymcode+','+dcode
-    items = demjson.decode(getURL(url))
-    dticks = items['ticks']['day']
-    namesplit = name.split(' ')
-    month = namesplit[0]
-    year = namesplit[1]
-    for tick in dticks:
-        if tick['on'] == True:
-            d = dticks.index(tick)
-            if d == 31:
-                continue
-            day = str(d+1)
-            dcode = str(d)
-            addDir((month+' '+day+', '+year),(ymcode+','+dcode),8)
-    xbmcplugin.endOfDirectory(pluginhandle)
-
-def LISTVIDEODATE(ymdcode):
-    xbmcplugin.setContent(pluginhandle, 'episodes')
-    url = DATELOOKUP+ymdcode
-    items = demjson.decode(getURL(url))
-    dataurl = items['feedURL']
-    LISTVIDEOS(dataurl)
-    xbmcplugin.endOfDirectory(pluginhandle)
-
 
 ################################ List Videos
 
@@ -467,20 +409,12 @@ print "Name: "+str(name)
 
 if mode==None or url==None or len(url)<1:
     ROOT()
-elif mode==1:
-    YEARS()
-elif mode==11:
-    MONTHES(url)
-elif mode==12:
-    DATES(url)
 elif mode==3:
     GUESTS()
 elif mode==5:
     FULLEPISODES()
 elif mode==7:
     pageFragments(url)
-elif mode==8:
-    LISTVIDEODATE(url)
 elif mode==9:
     LISTVIDEOS(url)
 elif mode==10:
