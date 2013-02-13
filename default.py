@@ -170,7 +170,7 @@ def GUESTS():
     for item in guest_items:
         g = Guest(item)
         
-        liz=xbmcgui.ListItem(g.name(), iconImage=None, thumbnailImage=None)
+        liz=xbmcgui.ListItem(g.name(), iconImage='', thumbnailImage='')
         liz.setInfo( type="Video", infoLabels={ "Title": g.name(),
                                                 "TVShowTitle":'The Daily Show'})
         liz.setProperty('IsPlayable', 'true')
