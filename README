@@ -4,9 +4,12 @@ This plugin provides access to full episodes of The Daily Show, as well as exten
 
 # Installation
 
+Simply click the "download as ZIP" link on the GitHub repository page, copy the zip file to your XMBC and find the "install from ZIP" command in the addon settings.
+
 # Credits
 
-This project was originally forked from https://github.com/VTWoods/xbmc-dailyshow.
+This project was originally forked from: https://github.com/VTWoods/xbmc-dailyshow
+The second form came from: https://github.com/adamsb6/xbmc-dailyshow
 
 [BeautifulSoup](http://www.crummy.com/software/BeautifulSoup/) is used to scrape web content.
 

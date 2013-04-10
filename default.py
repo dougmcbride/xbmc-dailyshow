@@ -97,23 +97,17 @@ def FULLEPISODES():
         airdates=re.compile('<span class="date">Aired: (.+?)</span>').findall(data)
         epNumbers=re.compile('<span class="id">Episode (.+?)</span>').findall(data)
         listings = []
+        i = 0
         for link, name in episodes:
             listing = []
             listing.append(name)
             listing.append(link)
+            listing.append(thumbnails[i])
+            listing.append(descriptions[i])
+            listing.append(airdates[i])
+            listing.append(epNumbers[i])
             listings.append(listing)
-        for thumbnail in thumbnails:
-            marker = thumbnails.index(thumbnail)
-            listings[marker].append(thumbnail)
-        for description in descriptions:
-            marker = descriptions.index(description)
-            listings[marker].append(description)
-        for airdate in airdates:
-            marker = airdates.index(airdate)
-            listings[marker].append(airdate)
-        for epNumber in epNumbers:
-            marker = epNumbers.index(epNumber)
-            listings[marker].append(epNumber)
+            i=i+1
         print listings
         for name, link, thumbnail, plot, date, seasonepisode in listings:
             mode = 10
