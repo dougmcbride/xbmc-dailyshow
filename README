@@ -9,7 +9,7 @@ Simply click the "download as ZIP" link on the GitHub repository page, copy the 
 # Credits
 
 This project was originally forked from: https://github.com/VTWoods/xbmc-dailyshow
-The second form came from: https://github.com/adamsb6/xbmc-dailyshow
+The source of the second fork is: https://github.com/adamsb6/xbmc-dailyshow
 
 [BeautifulSoup](http://www.crummy.com/software/BeautifulSoup/) is used to scrape web content.
 
