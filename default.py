@@ -92,7 +92,7 @@ def FULLEPISODES():
     for url, week in weeks:
         data = getURL(url)
         episodes=re.compile('<span class="date"><a href="(.+?)">(.+?)</a></span>').findall(data)
-        thumbnails=re.compile("<img width='.+?' height='.+?' src='(.+?)'.+?/>").findall(data)
+        thumbnails=re.compile('<img width=".+?" height=".+?" src="(.+?)".+?/>').findall(data)
         descriptions=re.compile('<span class="description">(.+?)</span>').findall(data)
         airdates=re.compile('<span class="date">Aired: (.+?)</span>').findall(data)
         epNumbers=re.compile('<span class="id">Episode (.+?)</span>').findall(data)
@@ -253,7 +253,7 @@ def PLAYVIDEO(name,url):
 
 def PLAYFULLEPISODE(name,url):
     data = getURL(url)
-    uri = re.compile('http://media.mtvnservices.com/(mgid:cms:episode:thedailyshow.com:\d{6}|mgid:cms:video:thedailyshow.com:\d{6})').findall(data)[0]
+    uri = re.compile('(mgid:cms:episode:thedailyshow.com:\d{6}|mgid:cms:video:thedailyshow.com:\d{6})').findall(data)[0]
     #url = 'http://media.mtvnservices.com/player/config.jhtml?uri='+uri+'&group=entertainment&type=network&site=thedailyshow.com'
     url = 'http://shadow.comedycentral.com/feeds/video_player/mrss/?uri='+uri
     data = getURL(url)
