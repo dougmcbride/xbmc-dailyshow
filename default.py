@@ -87,48 +87,56 @@ def FULLEPISODES():
     xbmcplugin.setContent(pluginhandle, 'episodes')
     xbmcplugin.addSortMethod(pluginhandle, xbmcplugin.SORT_METHOD_NONE)
     full = 'http://www.thedailyshow.com/full-episodes/'
-    data = getURL(full)
-    weeks = re.compile('<a id="(.+?)" class="seaso.+?" href="#">(.+?)</a>').findall(data)
-    for url, week in weeks:
-        data = getURL(url)
-        episodes=re.compile('<span class="date"><a href="(.+?)">(.+?)</a></span>').findall(data)
-        thumbnails=re.compile('<img width=".+?" height=".+?" src="(.+?)".+?/>').findall(data)
-        descriptions=re.compile('<span class="description">(.+?)</span>').findall(data)
-        airdates=re.compile('<span class="date">Aired: (.+?)</span>').findall(data)
-        epNumbers=re.compile('<span class="id">Episode (.+?)</span>').findall(data)
-        listings = []
-        i = 0
-        for link, name in episodes:
+    allData = getURL(full)
+
+    episodeURLs = re.compile('<a href="(http://www.thedailyshow.com/full-episodes/....+?)"').findall(allData) 
+    episodeURLSet = set(episodeURLs)
+
+    listings = []
+    for episodeURL in episodeURLs:
+        if episodeURL in episodeURLSet:
+            episodeURLSet.remove(episodeURL)
+            episodeData = getURL(episodeURL)
+
+            title=re.compile('<meta property="og:title" content="(.+?)"').search(episodeData)
+            thumbnail=re.compile('<meta property="og:image" content="(.+?)"').search(episodeData)
+            description=re.compile('<meta property="og:description" content="(.+?)"').search(episodeData)
+            airDate=re.compile('<meta itemprop="datePublished" content="(.+?)"').search(episodeData)
+            epNumber=re.compile('/season_\d+/(\d+)').search(episodeData)
+            link=re.compile('<link rel="canonical" href="(.+?)"').search(episodeData)
+
             listing = []
-            listing.append(name)
-            listing.append(link)
-            listing.append(thumbnails[i])
-            listing.append(descriptions[i])
-            listing.append(airdates[i])
-            listing.append(epNumbers[i])
+            listing.append(title.group(1))
+            listing.append(link.group(1))
+            listing.append(thumbnail.group(1))
+            listing.append(description.group(1))
+            listing.append(airDate.group(1))
+            listing.append(epNumber.group(1))
             listings.append(listing)
-            i=i+1
-        print listings
-        for name, link, thumbnail, plot, date, seasonepisode in listings:
-            mode = 10
-            season = int(seasonepisode[:-3])
-            episode = int(seasonepisode[-3:])
-            u=sys.argv[0]+"?url="+urllib.quote_plus(link)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
-            u += "&season="+urllib.quote_plus(str(season))
-            u += "&episode="+urllib.quote_plus(str(episode))
-            u += "&premiered="+urllib.quote_plus(date)
-            u += "&plot="+urllib.quote_plus(plot)
-            u += "&thumbnail="+urllib.quote_plus(thumbnail)
-            liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=thumbnail)
-            liz.setInfo( type="Video", infoLabels={ "Title": name,
-                                                    "Plot":plot,
-                                                    "Season":season,
-                                                    "Episode": episode,
-                                                    "premiered":date,
-                                                    "TVShowTitle":TVShowTitle})
-            liz.setProperty('IsPlayable', 'true')
-            liz.setProperty('fanart_image',fanart)
-            xbmcplugin.addDirectoryItem(handle=pluginhandle,url=u,listitem=liz)
+
+    print listings
+
+    for name, link, thumbnail, plot, date, seasonepisode in listings:
+        mode = 10
+        season = int(seasonepisode[:-3])
+        episode = int(seasonepisode[-3:])
+        u=sys.argv[0]+"?url="+urllib.quote_plus(link)+"&mode="+str(mode)+"&name="+urllib.quote_plus(name)
+        u += "&season="+urllib.quote_plus(str(season))
+        u += "&episode="+urllib.quote_plus(str(episode))
+        u += "&premiered="+urllib.quote_plus(date)
+        u += "&plot="+urllib.quote_plus(plot)
+        u += "&thumbnail="+urllib.quote_plus(thumbnail)
+        liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=thumbnail)
+        liz.setInfo( type="Video", infoLabels={ "Title": name,
+                                                "Plot":plot,
+                                                "Season":season,
+                                                "Episode": episode,
+                                                "premiered":date,
+                                                "TVShowTitle":TVShowTitle})
+        liz.setProperty('IsPlayable', 'true')
+        liz.setProperty('fanart_image',fanart)
+        xbmcplugin.addDirectoryItem(handle=pluginhandle,url=u,listitem=liz)
+
     xbmcplugin.endOfDirectory(pluginhandle)
 
 
