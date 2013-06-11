@@ -127,8 +127,8 @@ def FULLEPISODES():
         u += "&plot="+urllib.quote_plus(plot)
         u += "&thumbnail="+urllib.quote_plus(thumbnail)
         liz=xbmcgui.ListItem(name, iconImage="DefaultFolder.png", thumbnailImage=thumbnail)
-        liz.setInfo( type="Video", infoLabels={ "Title": name,
-                                                "Plot":plot,
+        liz.setInfo( type="Video", infoLabels={ "Title": BeautifulSoup.BeautifulSoup(name, convertEntities=BeautifulSoup.BeautifulSoup.HTML_ENTITIES),
+                                                "Plot": BeautifulSoup.BeautifulSoup(plot, convertEntities=BeautifulSoup.BeautifulSoup.HTML_ENTITIES),
                                                 "Season":season,
                                                 "Episode": episode,
                                                 "premiered":date,
