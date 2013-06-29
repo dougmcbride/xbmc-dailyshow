@@ -101,7 +101,7 @@ def FULLEPISODES():
             title=re.compile('<meta property="og:title" content="(.+?)"').search(episodeData)
             thumbnail=re.compile('<meta property="og:image" content="(.+?)"').search(episodeData)
             description=re.compile('<meta property="og:description" content="(.+?)"').search(episodeData)
-            airDate=re.compile('<meta itemprop="datePublished" content="(.+?)"').search(episodeData)
+            airDate=re.compile('<meta itemprop="uploadDate" content="(.+?)"').search(episodeData)
             epNumber=re.compile('/season_\d+/(\d+)').search(episodeData)
             link=re.compile('<link rel="canonical" href="(.+?)"').search(episodeData)
 
@@ -328,7 +328,7 @@ def GRAB_RTMP(uri):
             continue
         elif bitrate > lbitrate and lbitrate <> 0:
             continue
-        elif lbitrate <= bitrate or lbitrate == 0:
+        elif lbitrate >= bitrate or lbitrate == 0:
             pixels = w * h
             if pixels > mpixels or bitrate > mbitrate:
                 mpixels = pixels
