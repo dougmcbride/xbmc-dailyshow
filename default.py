@@ -328,7 +328,7 @@ def GRAB_RTMP(uri):
             continue
         elif bitrate > lbitrate and lbitrate <> 0:
             continue
-        elif lbitrate <= bitrate or lbitrate == 0:
+        elif lbitrate >= bitrate or lbitrate == 0:
             pixels = w * h
             if pixels > mpixels or bitrate > mbitrate:
                 mpixels = pixels
