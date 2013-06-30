@@ -7,9 +7,10 @@
 
 	<string id="30004">Choosen Bitrate</string>
 	<string id="30005">Maximum</string>
-	<string id="30006">1720kbps</string>
-	<string id="30007">1300kbps</string>
-	<string id="30008">960kbps</string>
-	<string id="30009">640kbps</string>
-	<string id="30010">450kbps</string>
+	<string id="30006">3500kbps</string>
+	<string id="30007">2200kbps</string>
+	<string id="30008">1700kbps</string>
+	<string id="30009">1200kbps</string>
+	<string id="30010">750kbps</string>
+	<string id="30011">400kbps</string>
 </strings>

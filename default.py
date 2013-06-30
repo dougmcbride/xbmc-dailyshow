@@ -289,60 +289,62 @@ def PLAYFULLEPISODE(name,url):
     xbmcplugin.setResolvedUrl(pluginhandle, True, item)
     
 
+class Episode:
+  def __init__(self, rtmp, bitrate, width, height):
+    self.rtmp = rtmp
+    self.bitrate = bitrate
+    self.width= width 
+    self.height = height
+ 
+  @staticmethod
+  def fromUrlData(data):
+    #get attributes
+    m = re.search("""width="([0-9]+).*height="([0-9]+).*bitrate="([0-9]+).*<src>(rtmpe[^<]+)</src>""", data, re.S)
+    if m:
+      (width, height, bitrate, rtmp) = m.groups()
+      return Episode(rtmp, int(bitrate), int(width), int(height))
+
+    #this should not happen
+    raise(Exception("Could not parse url-data: %s" % data))
+  
+  def __repr__(self):
+    return "rtmp: %s, bitrate: %i, width: %i, height: %i" % (self.rtmp, self.bitrate, self.width, self.height)
+
+def getEpisodes(data):
+    #split urldata into renditions
+    renditions = re.findall("(<rendition.*?</rendition>)", data, re.S)
+    #return a list of episodes
+    return [Episode.fromUrlData(r) for r in renditions]
+
+def getSettingsBitrate():
+    #map plugin settings to actual bitrates
+    setting2bitrate = {'1' : 400, '2' : 750, '3' : 1200, '4' : 1700, '5' : 2200, '6' : 3500} 
+    setting = xbmcplugin.getSetting(pluginhandle, "bitrate")
+    lbitrate = setting2bitrate.get(setting, 0)
+    return lbitrate
+
 ################################ Grab rtmp        
 
 def GRAB_RTMP(uri):
-    swfurl = 'http://media.mtvnservices.com/player/release/?v=4.5.3'
     url = 'http://www.comedycentral.com/global/feeds/entertainment/media/mediaGenEntertainment.jhtml?uri='+uri+'&showTicker=true'
     mp4_url = "http://mtvnmobile.vo.llnwd.net/kip0/_pxn=0+_pxK=18639+_pxE=/44620/mtvnorigin"
-    data = getURL(url)
-    widths = re.compile('width="(.+?)"').findall(data)
-    heights = re.compile('height="(.+?)"').findall(data)
-    bitrates = re.compile('bitrate="(.+?)"').findall(data)
-    rtmps = re.compile('<src>rtmp(.+?)</src>').findall(data)
-    
-    print 'rtmps --> %s' % rtmps
-    
-    mpixels = 0
-    mbitrate = 0
-    lbitrate = 0
-    if xbmcplugin.getSetting(pluginhandle,"bitrate") == '0':
-        lbitrate = 0
-    elif xbmcplugin.getSetting(pluginhandle,"bitrate") == '1':
-        lbitrate = 1720
-    elif xbmcplugin.getSetting(pluginhandle,"bitrate") == '2':
-        lbitrate = 1300
-    elif xbmcplugin.getSetting(pluginhandle,"bitrate") == '3':
-        lbitrate = 960
-    elif xbmcplugin.getSetting(pluginhandle,"bitrate") == '4':
-        lbitrate = 640
-    elif xbmcplugin.getSetting(pluginhandle,"bitrate") == '5':
-        lbitrate = 450
-    for rtmp in rtmps:
-        print 'processing rtmp: %s' % rtmp
-        marker = rtmps.index(rtmp)
-        w = int(widths[marker])
-        h = int(heights[marker])
-        bitrate = int(bitrates[marker])
-        if bitrate == 0:
-            continue
-        elif bitrate > lbitrate and lbitrate <> 0:
-            continue
-        elif lbitrate >= bitrate or lbitrate == 0:
-            pixels = w * h
-            if pixels > mpixels or bitrate > mbitrate:
-                mpixels = pixels
-                mbitrate = bitrate
-                furl = mp4_url + rtmp.split('viacomccstrm')[2]
-                #rtmpsplit = rtmp.split('/ondemand')
-                #server = rtmpsplit[0]
-                #path = rtmpsplit[1].replace('.flv','')
-                #if '.mp4' in path:
-                #    path = 'mp4:' + path
-                #port = ':1935'
-                #app = '/ondemand?ovpfv=2.1.4'
-                #furl = 'rtmp'+server+port+app+path+" playpath="+path+" swfurl="+swfurl+" swfvfy=true"
 
+    data = getURL(url)
+    episodes = getEpisodes(data)
+
+    #sort episodes by bitrate ascending
+    episodes.sort(key=lambda x : x.bitrate)
+
+    #chose maximum bitrate by default
+    ep = episodes[-1]
+
+    #check user settings
+    lbitrate = getSettingsBitrate()
+    if lbitrate:
+      #use the largest bitrate smaller-or-equal to the user-chosen value
+      ep = filter(lambda x : x.bitrate <= lbitrate, episodes)[-1]
+   
+    furl = mp4_url + ep.rtmp.split('viacomccstrm')[2]
     print 'furl --> %s' % furl
     return furl
 
